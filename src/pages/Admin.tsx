@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+// import { supabase } from '../lib/supabase';
 // import { useAuth } from '../hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 
@@ -10,36 +10,36 @@ interface User {
 }
 
 export default function Admin() {
-  const { user, isAdmin } = useAuth();
+  // const { user, isAdmin } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isAdmin) {
-      fetchUsers();
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (isAdmin) {
+  //     fetchUsers();
+  //   }
+  // }, []);
 
-  const fetchUsers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
+  // const fetchUsers = async () => {
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from('users')
+  //       .select('*')
+  //       .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch users');
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     if (error) throw error;
+  //     setUsers(data || []);
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : 'Failed to fetch users');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  if (!user || !isAdmin) {
-    return <Navigate to="/login\" replace />;
-  }
+  // if (!user || !isAdmin) {
+  //   return <Navigate to="/login\" replace />;
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
