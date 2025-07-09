@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../authContext';
 
 interface AuthFormProps {
   type: 'login' | 'register';
@@ -8,7 +8,7 @@ interface AuthFormProps {
 
 export function AuthForm({ type }: AuthFormProps) {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuthContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export function AuthForm({ type }: AuthFormProps) {
             setPassword('');
             setTimeout(() => {
               navigate('/dashboard');
-            }, 1500);
+            }, 500);
           } else {
             setError(error || 'Login failed. Please try again.');
           }
@@ -172,6 +172,9 @@ export function AuthForm({ type }: AuthFormProps) {
           </p>
         </div>
       </form>
+
+
+
     </div>
   );
 }

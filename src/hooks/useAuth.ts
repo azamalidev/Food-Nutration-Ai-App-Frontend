@@ -16,67 +16,26 @@ export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     token: '',
-    isLoading: true,
+    isLoading: false,
     isAuthenticated: false,
   });
   const [error, setError] = useState<string | null>(null);
 
-  // Function to check and set auth state
-  // const checkAuthState = useCallback(async () => {
-  //   try {
-  //     if (apiService.isAuthenticated()) {
-  //       const response = await apiService.getUserProfile();
-  //       // Check if response has the expected structure based on your API
-  //       if (response) {
-  //         setAuthState({
-  //           user: response.data.data || response.data, // Handle both possible structures
-  //           token: response.data.token || localStorage.getItem('authToken') || '',
-  //           isLoading: false,
-  //           isAuthenticated: true,
-  //         });
-  //         return true;
-  //       } else {
-  //         console.warn('Failed to get user profile, clearing auth state');
-  //         // apiService.logout();
-  //         setAuthState({
-  //           user: null,
-  //           token: '',
-  //           isLoading: false,
-  //           isAuthenticated: false,
-  //         });
-  //         return false;
-  //       }
-  //     } else {
-  //       setAuthState({
-  //         user: null,
-  //         token: '',
-  //         isLoading: false,
-  //         isAuthenticated: false,
-  //       });
-  //       return false;
-  //     }
-  //   } catch (err) {
-  //     console.error('Auth check error:', err);
-  //     // If we get a 403, it means the token is invalid/expired
-  //     // if (err instanceof Error && err.message.includes('403')) {
-  //     //   console.warn('Token appears to be invalid, logging out');
-  //     //   apiService.logout();
-  //     // }
-  //     setError(err instanceof Error ? err.message : 'Authentication error');
-  //     setAuthState({
-  //       user: null,
-  //       token: '',
-  //       isLoading: false,
-  //       isAuthenticated: false,
-  //     });
-  //     return false;
-  //   }
-  // }, []);
 
-  // Initialize auth state
-  // useEffect(() => {
-  //   checkAuthState();
-  // }, [checkAuthState]);
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    const storedToken = localStorage.getItem('token');
+
+    if (storedUser && storedToken) {
+      setAuthState({
+        user: JSON.parse(storedUser),
+        token: storedToken,
+        isLoading: false,
+        isAuthenticated: true,
+      });
+    }
+  }, []);
+
 
   // Login function - FIXED
   const login = async (credentials: LoginData): Promise<{ success: boolean; error?: string }> => {
@@ -86,13 +45,17 @@ export const useAuth = () => {
 
       const response = await apiService.login(credentials);
 
-      if (response && response.data && response.data.token) {
+      if (response) {
+        localStorage.setItem('user', JSON.stringify(response.data.data));
+        localStorage.setItem('token', response.data.token);
         setAuthState({
           user: response.data.data,
           token: response.data.token,
           isLoading: false,
           isAuthenticated: true,
         });
+        console.log("User ID (immediate):", authState); // ✅ This always works
+
         return { success: true };
       } else {
         const errorMessage = response?.meta?.message || 'Unexpected login response';
@@ -111,6 +74,8 @@ export const useAuth = () => {
   // Logout function
   const logout = () => {
     apiService.logout();
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     setAuthState({
       user: null,
       token: '',

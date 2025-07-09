@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, Camera, ShoppingCart, Utensils, Video } from 'lucide-react';
+import Navbar from '../components/navbar';
+import { useAuthContext } from '../authContext';
 
 const features = [
   {
@@ -32,33 +34,12 @@ const features = [
 
 function LandingPage() {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
+
 
   return (
     <div className="min-h-screen">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Brain className="h-8 w-8 text-emerald-600" />
-              <span className="ml-2 text-xl font-semibold text-gray-900">NutriAI</span>
-            </div>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => navigate('/login')}
-                className="text-emerald-600 hover:text-emerald-700 px-4 py-2"
-              >
-                Sign in
-              </button>
-              <button
-                onClick={() => navigate('/register')}
-                className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-              >
-                Sign up
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-16">
@@ -77,8 +58,13 @@ function LandingPage() {
               <div
                 key={feature.title}
                 className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => navigate('/register')}
-              >
+                onClick={() => {
+                  if (user) {
+                    navigate('/dashboard');
+                  } else {
+                    navigate('/register');
+                  }
+                }}              >
                 <div className="flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-lg mb-4">
                   <Icon className="h-6 w-6 text-emerald-600" />
                 </div>
@@ -91,11 +77,18 @@ function LandingPage() {
 
         <div className="mt-16 text-center">
           <button
-            onClick={() => navigate('/register')}
+            onClick={() => {
+              if (user) {
+                navigate('/dashboard');
+              } else {
+                navigate('/register');
+              }
+            }}
             className="bg-emerald-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-emerald-700 transition-colors"
           >
             Start Your Journey
           </button>
+
         </div>
       </main>
     </div>

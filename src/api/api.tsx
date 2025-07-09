@@ -1,7 +1,4 @@
 
-
-
-
 // Base API configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:2022';
 
@@ -76,7 +73,6 @@ interface RecipeRecommendation {
     ingredients: string[];
     instructions: string[];
     prepTime: number;
-    cookTime: number;
     servings: number;
     calories: number;
     protein: number;
@@ -93,6 +89,77 @@ interface GroceryItem {
     name: string;
     quantity: string;
     category: string;
+}
+
+
+
+interface Dish {
+    _id?: string;
+    name: string;
+    description: string;
+    ingredients: string[];
+    instructions: string[];
+    cookTime: number;
+    servings: number;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    meal_type: string;
+    is_vegetarian: boolean;
+    is_vegan: boolean;
+    is_gluten_free: boolean;
+    is_dairy_free: boolean;
+    is_keto: boolean;
+    cuisine_type: string;
+    difficulty_level: string;
+    tags: string[];
+}
+
+interface DishFilters {
+    meal_type?: string;
+    is_vegetarian?: boolean;
+    is_vegan?: boolean;
+    is_gluten_free?: boolean;
+    is_dairy_free?: boolean;
+    is_keto?: boolean;
+    cuisine_type?: string;
+    difficulty_level?: string;
+}
+
+interface DietaryPreferences {
+    vegetarian?: boolean;
+    vegan?: boolean;
+    gluten_free?: boolean;
+    dairy_free?: boolean;
+    keto?: boolean;
+}
+
+// Add these interfaces to your existing types
+interface MealPlanData {
+    date: string;
+    breakfast?: MealInfo;
+    lunch?: MealInfo;
+    dinner?: MealInfo;
+    snacks?: MealInfo[];
+    totalCalories?: number;
+    totalProtein?: number;
+    totalCarbs?: number;
+    totalFat?: number;
+}
+
+interface NutritionSummary {
+    totalCalories: number;
+    totalProtein: number;
+    totalCarbs: number;
+    totalFat: number;
+    dailyBreakdown: {
+        date: string;
+        calories: number;
+        protein: number;
+        carbs: number;
+        fat: number;
+    }[];
 }
 
 // API utility functions
@@ -187,7 +254,7 @@ class ApiService {
 
     // Generate meal plan
     async generateMealPlan(userProfile: GenerateMeal): Promise<ApiResponse> {
-        const response = await fetch(`${this.baseUrl}/meal`, {
+        const response = await fetch(`${this.baseUrl}/mealGen`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(userProfile),
@@ -224,6 +291,225 @@ class ApiService {
     getToken(): string | null {
         return localStorage.getItem('authToken');
     }
+
+
+    // DISH-RELATED METHODS
+
+    // Get all dishes with optional filters (Public route)
+    async getAllDishes(filters?: DishFilters): Promise<ApiResponse> {
+        const queryParams = new URLSearchParams();
+
+        if (filters) {
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined) {
+                    queryParams.append(key, value.toString());
+                }
+            });
+        }
+
+        const url = `${this.baseUrl}/dish${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }, // No auth required for public routes
+        });
+
+        return handleResponse(response);
+    }
+
+    // Get all meals for authenticated user
+    async getUserDish(): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/dish`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+        return handleResponse(response);
+    }
+
+    // Get single dish by ID (Public route)
+    async getDishById(id: string): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/dish/${id}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }, // No auth required for public routes
+        });
+
+        return handleResponse(response);
+    }
+
+    // Add new dish (Protected route - requires authentication)
+    async addDish(dishData: Dish): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/dish`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(dishData),
+        });
+
+        return handleResponse(response);
+    }
+
+    // Update dish (Protected route - requires authentication)
+    async updateDish(id: string, dishData: Partial<Dish>): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/dish/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ ...dishData, id }),
+        });
+
+        return handleResponse(response);
+    }
+
+    // Delete dish (Protected route - requires authentication)
+    async deleteDish(id: string): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/dish/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+        });
+
+        return handleResponse(response);
+    }
+
+    // Search dishes by name, description, or tags (Public route)
+    async searchDishes(searchTerm: string): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/dish/search?q=${encodeURIComponent(searchTerm)}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }, // No auth required for public routes
+        });
+
+        return handleResponse(response);
+    }
+
+    // Get dishes by meal type (Public route)
+    async getDishesByMealType(mealType: string): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/dish/meal-type/${mealType}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }, // No auth required for public routes
+        });
+
+        return handleResponse(response);
+    }
+
+    // Get dishes by dietary preferences (Public route)
+    async getDishesByDietaryPreferences(preferences: DietaryPreferences): Promise<ApiResponse> {
+        const queryParams = new URLSearchParams();
+
+        if (preferences.vegetarian) queryParams.append('vegetarian', 'true');
+        if (preferences.vegan) queryParams.append('vegan', 'true');
+        if (preferences.gluten_free) queryParams.append('gluten_free', 'true');
+        if (preferences.dairy_free) queryParams.append('dairy_free', 'true');
+        if (preferences.keto) queryParams.append('keto', 'true');
+
+        const url = `${this.baseUrl}/dish/dietary-preferences${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }, // No auth required for public routes
+        });
+
+        return handleResponse(response);
+    }
+
+    // MEAL-RELATED METHODS
+
+    // Create new meal plan
+    async createMealPlan(mealData: MealPlanData): Promise<ApiResponse> {
+        console.log("mealData", mealData)
+        const response = await fetch(`${this.baseUrl}/meal`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(mealData),
+        });
+        return handleResponse(response);
+    }
+
+    // Get all meals for authenticated user
+    async getUserMeals(): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/meal`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+        return handleResponse(response);
+    }
+
+    // Get meal by ID
+    async getMealById(id: string): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/meal/${id}`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+        return handleResponse(response);
+    }
+
+    // Update meal plan
+    async updateMealPlan(id: string, mealData: Partial<MealPlanData>): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/meal/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(mealData),
+        });
+        return handleResponse(response);
+    }
+
+    // Delete meal plan
+    async deleteMealPlan(id: string): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/meal/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+        });
+        return handleResponse(response);
+    }
+
+    // Get meal by specific date
+    async getMealByDate(date: string): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/meal/date/${date}`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+        return handleResponse(response);
+    }
+
+    // Get meals by date range
+    async getMealsByDateRange(startDate: string, endDate: string): Promise<ApiResponse> {
+        const queryParams = new URLSearchParams({
+            startDate,
+            endDate,
+        });
+
+        const response = await fetch(`${this.baseUrl}/meal/range/meals?${queryParams.toString()}`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+        return handleResponse(response);
+    }
+
+    // Get weekly meal plan
+    async getWeeklyMealPlan(startDate: string): Promise<ApiResponse> {
+        const queryParams = new URLSearchParams({
+            startDate,
+        });
+
+        const response = await fetch(`${this.baseUrl}/meal/weekly/plan?${queryParams.toString()}`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+        return handleResponse(response);
+    }
+
+    // Get nutrition summary for date range
+    async getNutritionSummary(startDate: string, endDate: string): Promise<ApiResponse> {
+        const queryParams = new URLSearchParams({
+            startDate,
+            endDate,
+        });
+
+        const response = await fetch(`${this.baseUrl}/meal/nutrition/summary?${queryParams.toString()}`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+        return handleResponse(response);
+    }
+
+
+
 }
 
 // Export singleton instance
@@ -237,8 +523,13 @@ export type {
     ApiResponse,
     GenerateMeal,
     MealPlan,
+    MealPlanData,
+    NutritionSummary,
     RecipeRecommendationRequest,
     RecipeRecommendation,
     GroceryListRequest,
-    GroceryItem
+    GroceryItem,
+    Dish,
+    DishFilters,
+    DietaryPreferences
 };
