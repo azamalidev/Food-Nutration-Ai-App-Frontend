@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { Clock, Users, ChefHat, Utensils, Calendar, ChevronDown, ChevronUp, Star, BookOpen, Trash2, AlertTriangle } from 'lucide-react';
+import EmeraldLoader from './loader';
 
 export default function RecipeComponent({
     data = [],
@@ -32,7 +33,29 @@ export default function RecipeComponent({
         setDeleteConfirmation(meal);
     };
 
+    const handleDeleteConfirm = async () => {
+        if (!deleteConfirmation) return;
 
+        const mealId = deleteConfirmation._id;
+        setIsDeleting(prev => new Set(prev).add(mealId));
+
+        try {
+            await onDelete(mealId);
+
+            // Optionally filter out deleted item from local state if needed
+            // or use an onDelete callback prop to update parent
+
+            setDeleteConfirmation(null);
+        } catch (error) {
+            console.error('Error deleting recipe:', error);
+        } finally {
+            setIsDeleting(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(mealId);
+                return newSet;
+            });
+        }
+    };
 
 
     const handleDeleteCancel = () => {
@@ -41,21 +64,24 @@ export default function RecipeComponent({
 
     if (loading) {
         return (
-            <div className="max-w-7xl mx-auto p-6">
-                <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded w-1/4 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="bg-white rounded-lg shadow-md p-6">
-                                <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                            </div>
-                        ))}
+            <>
+                <EmeraldLoader />
+                <div className="max-w-7xl mx-auto p-6">
+                    <div className="animate-pulse">
+                        <div className="h-8 bg-gray-200 rounded w-1/4 mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="bg-white rounded-lg shadow-md p-6">
+                                    <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </>
         );
     }
 
