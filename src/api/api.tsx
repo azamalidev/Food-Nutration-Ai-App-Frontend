@@ -241,7 +241,25 @@ class ApiService {
         const response = await fetch(`${this.baseUrl}/profile/update`, {
             method: 'PATCH',
             headers: getAuthHeaders(),
+
             body: JSON.stringify(userData),
+        });
+
+        return handleResponse(response);
+    }
+    async updateUserAdmin(id: string, userData: any): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/update/${id}`, {
+            method: 'PATCH',
+            headers: getAuthHeaders(),
+
+            body: JSON.stringify(userData),
+        });
+
+        return handleResponse(response);
+    }
+    async deleteUser(id: string): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/${id}`, {
+            method: 'DELETE',
         });
 
         return handleResponse(response);
@@ -250,6 +268,29 @@ class ApiService {
     // Logout user
     logout(): void {
         localStorage.removeItem('authToken');
+    }
+
+    async getAllUsers(): Promise<ApiResponse> {
+
+        const url = `${this.baseUrl}/all`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }, // No auth required for public routes
+        });
+
+        return handleResponse(response);
+    }
+
+
+    // Get single user by ID (Public route)
+    async getUserById(id: string): Promise<ApiResponse> {
+        const response = await fetch(`${this.baseUrl}/${id}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }, // No auth required for public routes
+        });
+
+        return handleResponse(response);
     }
 
     // Generate meal plan
@@ -307,7 +348,7 @@ class ApiService {
             });
         }
 
-        const url = `${this.baseUrl}/dish${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        const url = `${this.baseUrl}/dish/all${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
         const response = await fetch(url, {
             method: 'GET',
@@ -438,6 +479,20 @@ class ApiService {
         });
         return handleResponse(response);
     }
+
+
+    async getAllMeals(): Promise<ApiResponse> {
+
+        const url = `${this.baseUrl}/meal/all`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }, // No auth required for public routes
+        });
+
+        return handleResponse(response);
+    }
+
 
     // Update meal plan
     async updateMealPlan(id: string, mealData: Partial<MealPlanData>): Promise<ApiResponse> {
