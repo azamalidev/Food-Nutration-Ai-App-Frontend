@@ -267,25 +267,7 @@ export default function AdminUserCard({
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center space-x-3">
-                                        <Calendar className="h-5 w-5 text-green-500 flex-shrink-0" />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-white">Created Date</p>
-                                            <p className="text-sm text-gray-400">
-                                                {formatDate(user.createdAt)}
-                                            </p>
-                                        </div>
-                                    </div>
 
-                                    <div className="flex items-center space-x-3">
-                                        <Calendar className="h-5 w-5 text-orange-500 flex-shrink-0" />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-white">Last Updated</p>
-                                            <p className="text-sm text-gray-400">
-                                                {formatDate(user.updatedAt)}
-                                            </p>
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <div className="space-y-4">

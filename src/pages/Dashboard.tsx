@@ -670,7 +670,7 @@ const Dashboard = () => {
       cuisine_type: 'international',
       meal_type: 'snack',
       difficulty_level: recipe.difficulty,
-      user_id: user._id,
+      user_id: user.id,
       tags: recipe.tags
     };
   };
