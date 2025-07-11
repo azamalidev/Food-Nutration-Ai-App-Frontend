@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { Clock, Users, ChefHat, Utensils, Calendar, ChevronDown, ChevronUp, Star, BookOpen, Trash2, AlertTriangle } from 'lucide-react';
 import EmeraldLoader from './loader';
+import { useNavigate } from 'react-router-dom';
 
 export default function RecipeComponent({
     data = [],
@@ -14,7 +15,7 @@ export default function RecipeComponent({
     const [expandedCards, setExpandedCards] = useState(new Set());
     const [deleteConfirmation, setDeleteConfirmation] = useState(null);
     const [isDeleting, setIsDeleting] = useState(new Set());
-
+    const navigate = useNavigate();
     const toggleCard = (mealId) => {
         setExpandedCards(prev => {
             const newSet = new Set(prev);
@@ -334,7 +335,10 @@ export default function RecipeComponent({
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">No recipes found</h3>
                         <p className="text-gray-600 mb-4">Start building your culinary collection!</p>
-                        <button className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        <button className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                            onClick={() => { navigate("/dashboard") }}
+
+                        >
                             Add Your First Recipe
                         </button>
                     </div>

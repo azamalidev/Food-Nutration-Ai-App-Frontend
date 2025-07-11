@@ -29,19 +29,49 @@ const Dashboard = () => {
   const [approvingRecipe, setApprovingRecipe] = useState<number | null>(null);
   const [approvedRecipes, setApprovedRecipes] = useState<number[]>([]);
   const [mealPlanApproved, setMealPlanApproved] = useState(false); // New state for tracking approval
+  const [user, setUser] = useState(false);
 
 
 
   const navigate = useNavigate();
 
 
-  const { user, isLoading, isAuthenticated } = useAuthContext();
+  const { isLoading, isAuthenticated } = useAuthContext();
+
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const { apiService } = await import('../api/api');
+      const response = await apiService.getUserProfile();
+      console.log("response", response);
+
+      if (response?.data) {
+        const userData = {
+          name: response.data.data.name || '',
+          age: response.data.data.age || '',
+          gender: response.data.data.gender || '',
+          weight: response.data.data.weight || '',
+          height: response.data.data.height || '',
+          dietaryPreferance: response.data.data.dietaryPreferance || '',
+          healthGoal: response.data.data.healthGoal || '',
+          activityLevel: response.data.data.activityLevel || '',
+          id: response.data.data._id || '',
+        };
+        setUser(userData);
+
+
+      }
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    console.log("isAuthenticated", isAuthenticated);
-    console.log("isLoading", isLoading);
-    console.log("user", user);
-    console.log("Dashboard user:", user);
-  }, [user]);
+    fetchProfile();
+  }, []);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -111,6 +141,7 @@ const Dashboard = () => {
       setError('No meal plan to approve or user not logged in');
       return;
     }
+    console.log("ansnuas", user)
 
     setApprovingPlan(true);
     setError(null);
@@ -132,7 +163,7 @@ const Dashboard = () => {
       console.log("savedBreakfast, savedLunch, savedDinner", savedBreakfast, savedLunch, savedDinner)
       // Construct the meal plan data including user ID and dish IDs
       const mealPlanData = {
-        user_id: user._id,
+        user_id: user.id,
         plan_date: new Date().toISOString().split('T')[0],
         breakfast_dish_id: savedBreakfast.data._id,
         lunch_dish_id: savedLunch.data._id,
@@ -147,7 +178,7 @@ const Dashboard = () => {
       await apiService.createMealPlan(mealPlanData);
 
       setMealPlanApproved(true); // Set approval state to true
-      setSuccessMessage('Meal plan approved and saved successfully! All dishes have been added to your recipe collection.');
+      setSuccessMessage('Meal plan approved and saved successfully! ');
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to approve meal plan');
@@ -333,7 +364,6 @@ const Dashboard = () => {
               <p className="text-sm text-gray-600 mb-3">{mealPlan.breakfast.description}</p>
 
               <div className="text-xs text-gray-500 mb-3">
-                <span className="mr-4">⏱️ {mealPlan.breakfast.prep_time} min</span>
                 <span>{mealPlan.breakfast.calories} cal</span>
               </div>
 
@@ -369,7 +399,6 @@ const Dashboard = () => {
               <p className="text-sm text-gray-600 mb-3">{mealPlan.lunch.description}</p>
 
               <div className="text-xs text-gray-500 mb-3">
-                <span className="mr-4">⏱️ {mealPlan.lunch.prep_time} min</span>
                 <span>{mealPlan.lunch.calories} cal</span>
               </div>
 
@@ -405,7 +434,6 @@ const Dashboard = () => {
               <p className="text-sm text-gray-600 mb-3">{mealPlan.dinner.description}</p>
 
               <div className="text-xs text-gray-500 mb-3">
-                <span className="mr-4">⏱️ {mealPlan.dinner.prep_time} min</span>
                 <span>{mealPlan.dinner.calories} cal</span>
               </div>
 

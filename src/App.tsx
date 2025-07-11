@@ -5,11 +5,6 @@ import HealthProfile from './pages/HealthProfile';
 import Dashboard from './pages/Dashboard';
 import Auth from './pages/Auth';
 import Admin from './pages/Admin';
-import { useAuth } from './hooks/useAuth';
-import Users from './AdminPanel/pages/Users';
-import Products from './AdminPanel/pages/Products';
-import Reports from './AdminPanel/pages/Reports';
-import Settings from './AdminPanel/pages/Settings';
 import Dash from './AdminPanel/pages/Dashboard';
 
 // PrivateRoute protects routes from unauthenticated users
@@ -62,11 +57,12 @@ function App() {
           />
 
 
-          <Route path="admindashboard" element={<Dash />} />
-          <Route path="users" element={<Users />} />
-          <Route path="products" element={<Products />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="settings" element={<Settings />} />
+          <Route path="admindashboard" element={
+            <PrivateRoute>
+              <Dash />
+            </PrivateRoute>
+          } />
+
 
         </Routes>
       </div>

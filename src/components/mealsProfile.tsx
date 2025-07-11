@@ -8,20 +8,62 @@ import {
     Search,
     ArrowLeft,
     Eye,
-    Utensils
+    Utensils,
+    Trash2,
+    AlertTriangle,
+    ChefHat
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function MealsComponent({
     data = null,
     loading = false,
     title = "My Meals",
-    subtitle = "Manage your meal plans and dishes"
+    subtitle = "Manage your meal plans and dishes",
+    onDelete = (id) => { },
 }) {
     const meals = data || [];
     const [filteredMeals, setFilteredMeals] = useState([]);
     const [selectedMeal, setSelectedMeal] = useState(null);
     const [showMealDetails, setShowMealDetails] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(new Set());
+    const navigate = useNavigate();
+
+    const handleDeleteClick = (meal) => {
+        setDeleteConfirmation(meal);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteConfirmation) return;
+        console.log("deleteConfirmation", deleteConfirmation)
+
+        const mealId = deleteConfirmation._id;
+        setIsDeleting(prev => new Set(prev).add(mealId));
+
+        try {
+            await onDelete(mealId);
+
+            // Optionally filter out deleted item from local state if needed
+            // or use an onDelete callback prop to update parent
+
+            setDeleteConfirmation(null);
+        } catch (error) {
+            console.error('Error deleting recipe:', error);
+        } finally {
+            setIsDeleting(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(mealId);
+                return newSet;
+            });
+        }
+    };
+
+
+    const handleDeleteCancel = () => {
+        setDeleteConfirmation(null);
+    };
 
     useEffect(() => {
         let filtered = meals;
@@ -101,6 +143,7 @@ export default function MealsComponent({
                         </div>
                     </div>
                 </div>
+
 
                 <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs mb-3">
                     <div className="text-center bg-blue-50 rounded px-1 sm:px-2 py-1">
@@ -287,6 +330,48 @@ export default function MealsComponent({
                     </div>
                 </div>
 
+                {/* Delete Confirmation Modal */}
+                {deleteConfirmation && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2 bg-red-100 rounded-lg">
+                                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">Delete Recipe</h3>
+                                    <p className="text-gray-600 text-sm">This action cannot be undone</p>
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <p className="text-gray-700 mb-2">Are you sure you want to delete this recipe?</p>
+                                <div className="bg-gray-50 rounded-lg p-3">
+                                    <p className="font-medium text-gray-900">{deleteConfirmation.name}</p>
+                                    <p className="text-sm text-gray-600">{deleteConfirmation.description}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={handleDeleteCancel}
+                                    className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteConfirm}
+                                    disabled={isDeleting.has(deleteConfirmation._id)}
+                                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isDeleting.has(deleteConfirmation._id) ? 'Deleting...' : 'Delete'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+
                 {/* Meals Grid */}
                 <div className="space-y-4 sm:space-y-8">
                     {filteredMeals.map((meal) => (
@@ -305,14 +390,23 @@ export default function MealsComponent({
                                         </p>
                                     </div>
                                 </div>
+                                <div>
 
-                                <button
-                                    onClick={() => showMealDetailsModal(meal)}
-                                    className="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base w-full sm:w-auto"
-                                >
-                                    <Eye className="w-4 h-4 mr-2" />
-                                    View Details
-                                </button>
+                                    <button
+                                        onClick={() => showMealDetailsModal(meal)}
+                                        className="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base w-full sm:w-auto"
+                                    >
+                                        <Eye className="w-4 h-4 mr-2" />
+                                        View Details
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteClick(meal)}
+                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Delete recipe"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Meal Cards Grid */}
@@ -328,6 +422,24 @@ export default function MealsComponent({
                 {/* Meal Details Modal */}
                 {renderMealDetailsModal()}
             </div>
+
+
+            {data.length === 0 && (
+                <div className="text-center py-16">
+                    <div className="bg-white rounded-xl shadow-sm p-8 max-w-md mx-auto">
+                        <div className="bg-orange-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                            <ChefHat className="w-8 h-8 text-orange-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Meals found</h3>
+                        <p className="text-gray-600 mb-4">Start building your culinary collection!</p>
+                        <button className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                            onClick={() => { navigate("/dashboard") }}
+                        >
+                            Add Your First Meal
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

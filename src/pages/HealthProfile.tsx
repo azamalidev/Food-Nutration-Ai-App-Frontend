@@ -5,7 +5,7 @@ import { Edit2, User, Target, Activity, Utensils, BookOpen, X, ArrowLeft, Flame,
 import MealsComponent from '../components/mealsProfile';
 import RecipeComponent from '../components/recipeProfile';
 import Navbar from '../components/navbar';
-import ProfileUpdateModal from '../AdminPanel/pages/UserUpdateModal';
+import ProfileUpdateModal from '../AdminPanel/components/UserUpdateModal';
 
 
 function HealthProfile() {
@@ -68,7 +68,7 @@ function HealthProfile() {
     fetchProfile();
   }, []);
 
-  async function handleDeleteDish(dishId) {
+  async function handleDeleteDish(dishId: any) {
     try {
       const { apiService } = await import('../api/api');
       const result = await apiService.deleteDish(dishId);
@@ -84,8 +84,24 @@ function HealthProfile() {
       console.error("Error deleting dish:", error);
     }
   }
+  async function handleDeleteMeal(mealId: any) {
+    try {
+      const { apiService } = await import('../api/api');
+      const result = await apiService.deleteMealPlan(mealId);
 
-  const handleSubmit = async (formData) => {
+      if (result) {
+        fetchProfile();
+        handleBackToProfile();
+        console.log("meal deleted successfully:", result.data);
+      } else {
+        console.error("Failed to delete meal:", result.message);
+      }
+    } catch (error) {
+      console.error("Error deleting meal:", error);
+    }
+  }
+
+  const handleSubmit = async (formData: any) => {
     setUpdating(true);
     try {
       const { apiService } = await import('../api/api');
@@ -123,7 +139,7 @@ function HealthProfile() {
     setShowRecipeComponent(false);
   };
 
-  const formatValue = (value) => {
+  const formatValue = (value: any) => {
     if (!value) return 'Not set';
     return value.split(' ').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1)
@@ -159,7 +175,7 @@ function HealthProfile() {
           <MealsComponent
             data={mealsData}
             loading={false}
-            onDelete={handleDeleteDish}
+            onDelete={handleDeleteMeal}
             title="My Meal Plans"
             subtitle="Track your daily nutrition"
           />
